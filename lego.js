@@ -296,7 +296,7 @@ if (exports.isStar) {
     exports.and = function () {
         var filters = [].slice.call(arguments);
 
-        return function  and(collection) {
+        return function and(collection) {
             return applyCommonOperation(filters, collection, repetitions);
         };
     };
