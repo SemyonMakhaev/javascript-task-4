@@ -16,10 +16,12 @@ exports.isStar = true;
 var SELECTING_FIELDS = [];
 var FUNCTION_PRIORITY = {
     'filterIn': 1,
-    'sortBy': 1,
-    'select': 2,
-    'limit': 3,
-    'format': 3
+    'and': 2,
+    'or': 3,
+    'sortBy': 4,
+    'select': 5,
+    'limit': 6,
+    'format': 6
 };
 
 exports.query = function (collection) {
@@ -280,7 +282,7 @@ if (exports.isStar) {
     exports.or = function () {
         var filters = [].slice.call(arguments);
 
-        return function filterIn(collection) {
+        return function or(collection) {
             return applyCommonOperation(filters, collection, distinct);
         };
     };
@@ -294,7 +296,7 @@ if (exports.isStar) {
     exports.and = function () {
         var filters = [].slice.call(arguments);
 
-        return function filterIn(collection) {
+        return function  and(collection) {
             return applyCommonOperation(filters, collection, repetitions);
         };
     };
