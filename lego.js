@@ -4,14 +4,7 @@
  * Сделано задание на звездочку
  * Реализованы методы or и and
  */
-exports.isStar = false;
-
-/**
- * Запрос к коллекции
- * @param {Array} collection
- * @params {...Function} – Функции для запроса
- * @returns {Array}
- */
+exports.isStar = true;
 
 var SELECTING_FIELDS = [];
 var FUNCTION_PRIORITY = {
@@ -24,6 +17,12 @@ var FUNCTION_PRIORITY = {
     'format': 6
 };
 
+/**
+ * Запрос к коллекции
+ * @param {Array} collection
+ * @params {...Function} – Функции для запроса
+ * @returns {Array}
+ */
 exports.query = function (collection) {
     var copy = copyCollection(collection);
     var functions = [].slice.call(arguments).slice(1);
@@ -159,12 +158,15 @@ exports.sortBy = function (property, order) {
  */
 exports.format = function (property, formatter) {
     return function format(collection) {
-        collection.forEach(function (item) {
+        collection.forEach(function (item, idx) {
+            var newItem = {};
             for (var field in item) {
-                if (field === property) {
-                    item[field] = formatter(item[field]);
+                if (field !== undefined) {
+                    newItem[field] = field === property
+                            ? formatter(item[field]) : item[field];
                 }
             }
+            collection[idx] = newItem;
         });
 
         return collection;
