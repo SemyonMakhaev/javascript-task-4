@@ -31,7 +31,7 @@ exports.query = function (collection) {
         if (FUNCTION_PRIORITY[func1.name] > FUNCTION_PRIORITY[func2.name]) {
             return 1;
         }
-        if (FUNCTION_PRIORITY[func1.name] > FUNCTION_PRIORITY[func2.name]) {
+        if (FUNCTION_PRIORITY[func1.name] < FUNCTION_PRIORITY[func2.name]) {
             return -1;
         }
 
