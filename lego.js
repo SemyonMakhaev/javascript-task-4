@@ -6,7 +6,6 @@
  */
 exports.isStar = true;
 
-var SELECTING_FIELDS = [];
 var FUNCTION_PRIORITY = {
     'filterIn': 1,
     'and': 2,
@@ -39,7 +38,6 @@ exports.query = function (collection) {
     functions.forEach(function (func) {
         copy = func(copy);
     });
-    SELECTING_FIELDS = [];
 
     return copy;
 };
@@ -80,11 +78,10 @@ function copyCollection(collection) {
  * @returns {Function}
  */
 exports.select = function () {
+    var selectingFields = [];
     var args = [].slice.call(arguments);
     args.forEach(function (arg) {
-        if (SELECTING_FIELDS.indexOf(arg) < 0) {
-            SELECTING_FIELDS.push(arg);
-        }
+        selectingFields.push(arg);
     });
 
     return function select(collection) {
@@ -92,7 +89,7 @@ exports.select = function () {
         collection.forEach(function (item) {
             var selectedItem = {};
             for (var field in item) {
-                if (SELECTING_FIELDS.indexOf(field) >= 0) {
+                if (selectingFields.indexOf(field) >= 0) {
                     selectedItem[field] = item[field];
                 }
             }
