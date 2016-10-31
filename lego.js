@@ -251,7 +251,7 @@ if (exports.isStar) {
             var copy = copyCollection(collection);
             var collections = [];
             filters.forEach(function (filter) {
-                collections.push(filter(copy));
+                collections.push(copyCollection(filter(copy)));
             });
 
             return mergeCollections(collections);
