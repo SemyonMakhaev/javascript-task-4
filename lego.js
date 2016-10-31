@@ -219,21 +219,20 @@ function contains(item, collection) {
 }
 
 /**
- * Находит объединение коллекций
+ * Определяет принадлежность элемента хотя бы одной из коллекций
+ * @param {Object} item - Элемент
  * @param {Array} collections - Коллекции
- * @returns {Array} - Объединение
+ * @returns {Boolean}
  */
-function mergeCollections(collections) {
-    var unification = [];
+function containsToCollections(item, collections) {
+    var finded = false;
     collections.forEach(function (collection) {
-        collection.forEach(function (item) {
-            if (!contains(item, unification)) {
-                unification.push(item);
-            }
-        });
+        if (contains(item, collection)) {
+            finded = true;
+        }
     });
 
-    return unification;
+    return finded;
 }
 
 if (exports.isStar) {
@@ -249,12 +248,19 @@ if (exports.isStar) {
 
         return function or(collection) {
             var copy = copyCollection(collection);
-            var collections = [];
+            var filteredCollections = [];
             filters.forEach(function (filter) {
-                collections.push(copyCollection(filter(copy)));
+                filteredCollections.push(filter(copy));
+            });
+            var result = [];
+            collection.forEach(function (item) {
+                if (containsToCollections(item, filteredCollections) &&
+                                !contains(item, result)) {
+                    result.push(item);
+                }
             });
 
-            return mergeCollections(collections);
+            return result;
         };
     };
 
