@@ -219,56 +219,21 @@ function contains(item, collection) {
 }
 
 /**
- * Убирает повторяющиеся элементы коллекции
- * @param {Array} collection - Коллекция
- * @returns {Array}
+ * Находит объединение коллекций
+ * @param {Array} collections - Коллекции
+ * @returns {Array} - Объединение
  */
-function distinct(collection) {
-    var items = [];
-    collection.forEach(function (item) {
-        if (!contains(item, items)) {
-            items.push(item);
-        }
-    });
-
-    return items;
-}
-
-/**
- * Оставляет только повторяющиеся элементы коллекции
- * @param {Array} collection - Коллекция
- * @returns {Array}
- */
-function repetitions(collection) {
-    var items = [];
-    collection.forEach(function (item) {
-        collection.forEach(function (otherItem) {
-            if (item !== otherItem && equals(item, otherItem) &&
-                                    !contains(item, items)) {
-                items.push(item);
+function mergeCollections(collections) {
+    var unification = [];
+    collections.forEach(function (collection) {
+        collection.forEach(function (item) {
+            if (!contains(item, unification)) {
+                unification.push(item);
             }
         });
     });
 
-    return items;
-}
-
-/**
- * Фильтрует коллекцию и применяет операцию к результату фильтрации
- * @param {Array} filters - Фильтрующие функции
- * @param {Array} collection - Коллекция
- * @param {Function} operation - Операция
- * @returns {Array} - Результат операции после фильтрации
- */
-function applyCommonOperation(filters, collection, operation) {
-    var items = [];
-    filters.forEach(function (filter) {
-        filter(collection).forEach(function (item) {
-            items.push(item);
-        });
-    });
-
-    return operation(items);
+    return unification;
 }
 
 if (exports.isStar) {
@@ -283,7 +248,13 @@ if (exports.isStar) {
         var filters = [].slice.call(arguments);
 
         return function or(collection) {
-            return applyCommonOperation(filters, collection, distinct);
+            var copy = copyCollection(collection);
+            var collections = [];
+            filters.forEach(function (filter) {
+                collections.push(filter(copy));
+            });
+
+            return mergeCollections(collections);
         };
     };
 
@@ -297,7 +268,12 @@ if (exports.isStar) {
         var filters = [].slice.call(arguments);
 
         return function and(collection) {
-            return applyCommonOperation(filters, collection, repetitions);
+            var copy = copyCollection(collection);
+            filters.forEach(function (filter) {
+                copy = filter(copy);
+            });
+
+            return copy;
         };
     };
 }
