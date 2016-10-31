@@ -82,7 +82,9 @@ function copyCollection(collection) {
 exports.select = function () {
     var args = [].slice.call(arguments);
     args.forEach(function (arg) {
-        SELECTING_FIELDS.push(arg);
+        if (SELECTING_FIELDS.indexOf(arg) < 0) {
+            SELECTING_FIELDS.push(arg);
+        }
     });
 
     return function select(collection) {
@@ -94,9 +96,7 @@ exports.select = function () {
                     selectedItem[field] = item[field];
                 }
             }
-            if (Object.keys(selectedItem).length > 0) {
-                selected.push(selectedItem);
-            }
+            selected.push(selectedItem);
         });
 
         return selected;
