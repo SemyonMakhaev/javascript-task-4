@@ -113,9 +113,6 @@ exports.filterIn = function (property, values) {
     return function filterIn(collection) {
         var filtered = [];
         collection.forEach(function (item) {
-            if (!(property in item) && !contains(item, filtered)) {
-                filtered.push(copyObject(item));
-            }
             for (var field in item) {
                 if (property === field.toString() &&
                             values.indexOf(item[field]) >= 0 &&
