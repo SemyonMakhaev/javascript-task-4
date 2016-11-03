@@ -227,8 +227,15 @@ if (exports.isStar) {
                     }
                 });
             });
+            var result = [];
+            collection.forEach(function (item) {
+                if (contains(item, filteredCollection) &&
+                                !contains(item, result)) {
+                    result.push(item);
+                }
+            });
 
-            return filteredCollection;
+            return result;
         };
     };
 
