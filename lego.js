@@ -48,14 +48,7 @@ exports.query = function (collection) {
  * @returns {Object} - Копия
  */
 function copyObject(item) {
-    var newItem = {};
-    for (var field in item) {
-        if (field !== undefined) {
-            newItem[field] = item[field];
-        }
-    }
-
-    return newItem;
+    return JSON.parse(JSON.stringify(item));
 }
 
 /**
@@ -78,21 +71,17 @@ function copyCollection(collection) {
  * @returns {Function}
  */
 exports.select = function () {
-    var selectingFields = [];
-    var args = [].slice.call(arguments);
-    args.forEach(function (arg) {
-        selectingFields.push(arg);
-    });
+    var selectingFields = [].slice.call(arguments);
 
     return function select(collection) {
         var selected = [];
         collection.forEach(function (item) {
             var selectedItem = {};
-            for (var field in item) {
-                if (selectingFields.indexOf(field) >= 0) {
+            selectingFields.forEach(function (field) {
+                if (field in item) {
                     selectedItem[field] = item[field];
                 }
-            }
+            });
             selected.push(selectedItem);
         });
 
@@ -123,7 +112,7 @@ exports.filterIn = function (property, values) {
     };
 };
 
-var PREORDER = 'asc';
+var ASCENDING_ORDER = 'asc';
 
 /**
  * Сортировка коллекции по полю
@@ -135,10 +124,10 @@ exports.sortBy = function (property, order) {
     return function sortBy(collection) {
         collection.sort(function (item1, item2) {
             if (item1[property] > item2[property]) {
-                return order === PREORDER ? 1 : -1;
+                return order === ASCENDING_ORDER ? 1 : -1;
             }
             if (item1[property] < item2[property]) {
-                return order === PREORDER ? -1 : 1;
+                return order === ASCENDING_ORDER ? -1 : 1;
             }
 
             return 0;
@@ -178,7 +167,7 @@ exports.format = function (property, formatter) {
  */
 exports.limit = function (count) {
     return function limit(collection) {
-        return collection.slice(0, count);
+        return count >= 0 ? collection.slice(0, count) : [];
     };
 };
 
@@ -218,23 +207,6 @@ function contains(item, collection) {
     return itemContains;
 }
 
-/**
- * Определяет принадлежность элемента хотя бы одной из коллекций
- * @param {Object} item - Элемент
- * @param {Array} collections - Коллекции
- * @returns {Boolean}
- */
-function containsToCollections(item, collections) {
-    var finded = false;
-    collections.forEach(function (collection) {
-        if (contains(item, collection)) {
-            finded = true;
-        }
-    });
-
-    return finded;
-}
-
 if (exports.isStar) {
 
     /**
@@ -247,20 +219,16 @@ if (exports.isStar) {
         var filters = [].slice.call(arguments);
 
         return function or(collection) {
-            var copy = copyCollection(collection);
-            var filteredCollections = [];
+            var filteredCollection = [];
             filters.forEach(function (filter) {
-                filteredCollections.push(filter(copy));
-            });
-            var result = [];
-            collection.forEach(function (item) {
-                if (containsToCollections(item, filteredCollections) &&
-                                !contains(item, result)) {
-                    result.push(item);
-                }
+                filter(collection).forEach(function (item) {
+                    if (!contains(item, filteredCollection)) {
+                        filteredCollection.push(item);
+                    }
+                });
             });
 
-            return result;
+            return filteredCollection;
         };
     };
 
@@ -274,12 +242,11 @@ if (exports.isStar) {
         var filters = [].slice.call(arguments);
 
         return function and(collection) {
-            var copy = copyCollection(collection);
             filters.forEach(function (filter) {
-                copy = filter(copy);
+                collection = filter(collection);
             });
 
-            return copy;
+            return collection;
         };
     };
 }
