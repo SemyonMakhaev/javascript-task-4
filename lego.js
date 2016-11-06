@@ -26,14 +26,7 @@ exports.query = function (collection) {
     var copy = copyCollection(collection);
     var functions = [].slice.call(arguments).slice(1);
     functions.sort(function (func1, func2) {
-        if (FUNCTION_PRIORITY[func1.name] > FUNCTION_PRIORITY[func2.name]) {
-            return 1;
-        }
-        if (FUNCTION_PRIORITY[func1.name] < FUNCTION_PRIORITY[func2.name]) {
-            return -1;
-        }
-
-        return 0;
+        return FUNCTION_PRIORITY[func1.name] - FUNCTION_PRIORITY[func2.name];
     });
     functions.forEach(function (func) {
         copy = func(copy);
@@ -43,15 +36,6 @@ exports.query = function (collection) {
 };
 
 /**
- * Копирует объект
- * @param {Object} item - Объект для копирования
- * @returns {Object} - Копия
- */
-function copyObject(item) {
-    return JSON.parse(JSON.stringify(item));
-}
-
-/**
  * Копирует коллекцию
  * @param {Array} collection
  * @returns {Array} - Копия
@@ -59,7 +43,7 @@ function copyObject(item) {
 function copyCollection(collection) {
     var copy = [];
     collection.forEach(function (item) {
-        copy.push(copyObject(item));
+        copy.push(JSON.parse(JSON.stringify(item)));
     });
 
     return copy;
@@ -103,7 +87,7 @@ exports.filterIn = function (property, values) {
                 if (property === field.toString() &&
                             values.indexOf(item[field]) >= 0 &&
                             !contains(item, filtered)) {
-                    filtered.push(copyObject(item));
+                    filtered.push(JSON.parse(JSON.stringify(item)));
                 }
             }
         });
@@ -123,14 +107,9 @@ var ASCENDING_ORDER = 'asc';
 exports.sortBy = function (property, order) {
     return function sortBy(collection) {
         collection.sort(function (item1, item2) {
-            if (item1[property] > item2[property]) {
-                return order === ASCENDING_ORDER ? 1 : -1;
-            }
-            if (item1[property] < item2[property]) {
-                return order === ASCENDING_ORDER ? -1 : 1;
-            }
-
-            return 0;
+            return order === ASCENDING_ORDER
+                    ? item1[property] - item2[property]
+                    : item2[property] - item1[property];
         });
 
         return collection;
