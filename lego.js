@@ -107,9 +107,14 @@ var ASCENDING_ORDER = 'asc';
 exports.sortBy = function (property, order) {
     return function sortBy(collection) {
         collection.sort(function (item1, item2) {
-            return order === ASCENDING_ORDER
-                    ? item1[property] - item2[property]
-                    : item2[property] - item1[property];
+            if (item1[property] > item2[property]) {
+                return order === ASCENDING_ORDER ? 1 : -1;
+            }
+            if (item1[property] < item2[property]) {
+                return order === ASCENDING_ORDER ? -1 : 1;
+            }
+
+            return 0;
         });
 
         return collection;
