@@ -7,13 +7,13 @@
 exports.isStar = true;
 
 var FUNCTION_PRIORITY = {
-    'filterIn': 1,
-    'and': 2,
-    'or': 3,
-    'sortBy': 4,
-    'select': 5,
-    'limit': 6,
-    'format': 6
+    filterIn: 1,
+    and: 2,
+    or: 3,
+    sortBy: 4,
+    select: 5,
+    limit: 6,
+    format: 6
 };
 
 /**
@@ -28,12 +28,21 @@ exports.query = function (collection) {
     functions.sort(function (func1, func2) {
         return FUNCTION_PRIORITY[func1.name] - FUNCTION_PRIORITY[func2.name];
     });
-    functions.forEach(function (func) {
-        copy = func(copy);
-    });
+    copy = functions.reduce(function (currentCollection, func) {
+        return func(currentCollection);
+    }, copy);
 
     return copy;
 };
+
+/**
+ * Копирует объект
+ * @param {Object} item
+ * @returns {Object} - Копия
+ */
+function copyObject(item) {
+    return JSON.parse(JSON.stringify(item));
+}
 
 /**
  * Копирует коллекцию
@@ -41,12 +50,7 @@ exports.query = function (collection) {
  * @returns {Array} - Копия
  */
 function copyCollection(collection) {
-    var copy = [];
-    collection.forEach(function (item) {
-        copy.push(JSON.parse(JSON.stringify(item)));
-    });
-
-    return copy;
+    return collection.map(copyObject);
 }
 
 /**
@@ -58,15 +62,14 @@ exports.select = function () {
     var selectingFields = [].slice.call(arguments);
 
     return function select(collection) {
-        var selected = [];
-        collection.forEach(function (item) {
-            var selectedItem = {};
-            selectingFields.forEach(function (field) {
+        var selected = collection.map(function (item) {
+            return selectingFields.reduce(function (currentItem, field) {
                 if (field in item) {
-                    selectedItem[field] = item[field];
+                    currentItem[field] = item[field];
                 }
-            });
-            selected.push(selectedItem);
+
+                return currentItem;
+            }, {});
         });
 
         return selected;
@@ -84,8 +87,8 @@ exports.filterIn = function (property, values) {
         var filtered = [];
         collection.forEach(function (item) {
             for (var field in item) {
-                if (property === field.toString() &&
-                            values.indexOf(item[field]) >= 0 &&
+                if (item.hasOwnProperty(field) && property === field &&
+                            values.indexOf(item[field]) !== -1 &&
                             !contains(item, filtered)) {
                     filtered.push(JSON.parse(JSON.stringify(item)));
                 }
@@ -166,7 +169,7 @@ function equals(item1, item2) {
         return false;
     }
     for (var field in item1) {
-        if (item1[field] !== item2[field]) {
+        if (item1.hasOwnProperty(field) && item1[field] !== item2[field]) {
             return false;
         }
     }
@@ -181,14 +184,9 @@ function equals(item1, item2) {
  * @returns {Boolean} - Есть ли элемент в коллекции
  */
 function contains(item, collection) {
-    var itemContains = false;
-    collection.forEach(function (otherItem) {
-        if (equals(item, otherItem)) {
-            itemContains = true;
-        }
+    return collection.some(function (otherItem) {
+        return equals(item, otherItem);
     });
-
-    return itemContains;
 }
 
 if (exports.isStar) {
